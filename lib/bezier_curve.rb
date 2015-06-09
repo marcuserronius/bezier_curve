@@ -17,24 +17,24 @@ class BezierCurve
     raise "Minimum 2 control points (given #{controls.size})" unless 
       controls.size >= 2
     raise "All control points must have the same number of dimensions" unless 
-      controls[1..-1].all?{|c|controls.first.size == }
+      controls[1..-1].all?{|c|controls.first.size == c.size}
     @controls = controls.map(&:to_np)
   end
 
-  attr_reader controls
+  attr_reader :controls
 
   # the first control point
   def first() controls.first; end
-  alias_method :first, :start
+  alias_method :start, :first
   # the last control point
   def last()  controls.last;  end
-  alias_method :last, :end
+  alias_method :end, :last
   
   # the degree of the curve
   def degree
     controls.size - 1
   end
-  alias_method :degree, :order
+  alias_method :order, :degree
   # the number of dimensions given
   def dimensions
     controls[0].size
@@ -50,7 +50,7 @@ class BezierCurve
     end
     pts[0].to_np
   end
-  alias_method :index, :[]
+  alias_method :[], :index
 
   # divide this bezier curve into two curves, at the given `t`
   def split_at(t)
@@ -74,7 +74,7 @@ class BezierCurve
   # radians). If unspecified, defaults to `tolerance: 1/64pi` (~3 deg)
   def points(count:nil, tolerance:Math::PI/64)
     if count
-      (0...count).map{|i| index i/size.to_f}
+      (0...count).map{|i| index i/(count-1.0)}
     else
       lines = subdivide(tolerance)
       lines.map{|seg|seg.first} + lines.last.last
@@ -107,8 +107,6 @@ class BezierCurve
       end
     end
   end
-
-
 end
 
 # Extends an array to treat it as an n-dimensional point. Should not
@@ -132,7 +130,7 @@ module NPoint
   # calculates the new point on the vector of self->other, scaled by `t`.
   # t=0 returns `self`, t=.5 is the midpoint, t=1 is `other`.
   def to(other, t)
-    self.zip(other).map{|a,b|t*(b-a)+a}
+    self.zip(other).map{|a,b|t*(b-a)+a}.to_np
   end
 
   # convert to NPoint; returns self
