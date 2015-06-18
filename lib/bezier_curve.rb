@@ -21,7 +21,7 @@ class BezierCurve
     ZeroDimensionError.check! controls
     DifferingDimensionError.check! controls
     InsufficientPointsError.check! controls
-    
+
     @controls = controls.map(&:to_np)
   end
 
@@ -81,7 +81,7 @@ class BezierCurve
       (0...count).map{|i| index i/(count-1.0)}
     else
       lines = subdivide(tolerance)
-      lines.map{|seg|seg.first} + lines.last.last
+      lines.map{|seg|seg.first} + [lines.last.last]
     end
   end
 
