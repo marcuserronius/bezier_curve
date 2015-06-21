@@ -86,13 +86,22 @@ class BezierCurve
   end
 
   # recursively subdivides the curve until each is straight within the
-  # given tolerance value, in radians
+  # given tolerance value, in radians. Then, subdivides further as
+  # needed to remove remaining corners.
   def subdivide(tolerance)
-    if is_straight?(tolerance)
+    if is_straight? tolerance
       [self]
     else
-      a,b = split_at(0.5)
-      a.subdivide(tolerance) + b.subdivide(tolerance)
+      a,b = split_at(0.5).map{|c| c.subdivide(tolerance)}
+      # now make sure the angle from a to b is good
+      while a.last.first.angle_to(a.last.last,b.first.last) > tolerance
+        if a.last.divergence > b.first.divergence
+          a[-1,1] = a[-1].split_at(0.5)
+        else
+          b[0,1]  = b[0].split_at(0.5)
+        end
+      end
+      a+b
     end
   end
 
@@ -100,8 +109,8 @@ class BezierCurve
   # test this curve to see of it can be considered straight, optionally
   # within the given angular tolerance, in radians
   def is_straight?(tolerance)
-    # sanity check for tolerance in radians
-    if first.angle_to(index(0.5), last) <= tolerance
+    # normal check for tolerance 
+    if divergence <= tolerance
       # maximum wavyness is `degree` - 1; split at `degree` points
       pts = points(count:degree)
       # size-3, because we ignore the last 2 points as starting points;
@@ -109,11 +118,18 @@ class BezierCurve
       (0..pts.size-3).all? do |i|
         pts[i].angle_to(pts[i+1], pts[i+2]) < tolerance
       end
+    else
+      false
     end
   end
 
+  # How much this curve diverges from straight, measuring from `t=0.5`
+  def divergence
+    first.angle_to(self[0.5],last)
+  end
+
   # Indicates an error where the control points are in zero dimensions.
-  # Sounds silly, but you never know when software is generating the
+  # Sounds silly, but you never know, when software is generating the
   # points.
   class ZeroDimensionError < ArgumentError
     def initialize
