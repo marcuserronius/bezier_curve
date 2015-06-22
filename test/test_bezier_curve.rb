@@ -8,6 +8,18 @@ class TestBezierCurve < Test::Unit::TestCase
     BezierCurve.new(*args)
   end
 
+  def test_initialize_errors
+    assert_raise BezierCurve::ZeroDimensionError do
+      bc([],[],[],[])
+    end
+    assert_raise BezierCurve::DifferingDimensionError do
+      bc([1,2],[3,4],[5,6,7])
+    end
+    assert_raise BezierCurve::InsufficientPointsError do
+      bc([1,2,3])
+    end
+  end
+
   def test_degree
     assert_equal 2, bc([0,0],[0,1],[1,1]).degree
     assert_equal 3, bc([0,0],[0,1],[1,0],[1,1]).degree

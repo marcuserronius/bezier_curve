@@ -136,7 +136,7 @@ class BezierCurve
       super "Points given must have at least one dimension"
     end
     def self.check! pointset
-      raise new.tap{|e|e.backtrace.shift} if
+      raise self if
         pointset[0].size == 0
     end
   end
@@ -148,7 +148,7 @@ class BezierCurve
       super "All points must have the same number of dimensions"
     end
     def self.check! pointset
-      raise new.tap{|e|e.backtrace.shift} if
+      raise self if
         pointset[1..-1].any?{|pt| pointset[0].size != pt.size}
     end
   end
@@ -157,10 +157,10 @@ class BezierCurve
   # for a first-degree bezier.
   class InsufficientPointsError < ArgumentError
     def initialize
-      super "All points must have the same number of dimensions"
+      super "You must supply a minimum of two points"
     end
     def self.check! pointset
-      raise new.tap{|e|e.backtrace.shift} if
+      raise self if
         pointset.size <= 1
     end
   end
